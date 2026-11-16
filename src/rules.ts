@@ -35,6 +35,7 @@ export function shannonEntropy(value: string): number {
 function looksLikeSecretValue(value: string): boolean {
   if (value.length < MIN_GENERIC_LENGTH) return false;
   if (/[\s(]/.test(value)) return false; // prose or a function call
+  if (value.startsWith('http') || value.startsWith('/')) return false; // URL or path
   if (/^[A-Za-z_$][\w$]*(\.[\w$]+)+$/.test(value)) return false; // member access, e.g. config.apiKey
   if (isPlaceholder(value)) return false;
   return shannonEntropy(value) >= MIN_GENERIC_ENTROPY;

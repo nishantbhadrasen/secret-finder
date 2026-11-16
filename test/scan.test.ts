@@ -50,6 +50,8 @@ test('generic rule ignores placeholders, low entropy, and code', () => {
     'secret = config.secretValue',
     'if (token === "abcdef")',
     'password: "Please enter your password"',
+    'token_url = "https://oauth2.googleapis.com/token"',
+    'password_reset_route: "/account/reset-password"',
   ]) {
     assert.deepEqual(rulesFor(line), [], line);
   }
