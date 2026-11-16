@@ -3,11 +3,8 @@
   "version": "0.1.0",
   "description": "Scan a git change for accidentally committed secrets",
   "type": "module",
-  "bin": {
-    "secret-finder": "src/cli.ts"
-  },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.3"
   },
   "scripts": {
     "test": "node --test 'test/*.test.ts'",
