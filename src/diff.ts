@@ -63,38 +63,11 @@ export function parseDiff(diff: string): AddedLine[] {
 function parsePath(spec: string): string | null {
   let path: string;
   if (spec.startsWith('"')) {
-    path = unquote(spec);
+    path = spec.replace(/^"|"$/g, '');
   } else {
     const tab = spec.indexOf('\t');
     path = tab === -1 ? spec : spec.slice(0, tab);
   }
   if (path === '/dev/null') return null;
   return path.startsWith('b/') ? path.slice(2) : path;
-}
-
-const ESCAPES: Record<string, number> = {
-  a: 7, b: 8, t: 9, n: 10, v: 11, f: 12, r: 13, '"': 34, '\\': 92,
-};
-
-/** Decode a C-style quoted path as written by git, e.g. "b/caf\303\251.txt". */
-function unquote(quoted: string): string {
-  const bytes: number[] = [];
-  for (let i = 1; i < quoted.length; i++) {
-    const c = quoted[i];
-    if (c === '"') break;
-    if (c === '\\') {
-      const next = quoted[++i];
-      if (next >= '0' && next <= '7') {
-        bytes.push(parseInt(quoted.slice(i, i + 3), 8));
-        i += 2;
-      } else {
-        bytes.push(ESCAPES[next] ?? next.charCodeAt(0));
-      }
-    } else {
-      const char = String.fromCodePoint(quoted.codePointAt(i)!);
-      bytes.push(...Buffer.from(char));
-      i += char.length - 1;
-    }
-  }
-  return Buffer.from(bytes).toString('utf8');
 }

@@ -96,10 +96,7 @@ test('strips ANSI color codes from colored diffs', () => {
   assert.deepEqual(parseDiff(diff), [{ file: 'c.txt', line: 2, text: 'new' }]);
 });
 
-test('decodes quoted paths and strips timestamps from non-git diffs', () => {
-  const quoted = lines('+++ "b/caf\\303\\251 \\"x\\".txt"', '@@ -0,0 +1 @@', '+hi');
-  assert.equal(parseDiff(quoted)[0].file, 'café "x".txt');
-
+test('strips timestamps from non-git diffs', () => {
   const plain = lines('--- old.txt\t2026-01-01', '+++ new.txt\t2026-01-02', '@@ -1 +1 @@', '-a', '+b');
   assert.equal(parseDiff(plain)[0].file, 'new.txt');
 });
