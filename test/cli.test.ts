@@ -128,16 +128,26 @@ test('errors exit 2', () => {
   assert.equal(run(dir, ['--diff', 'a', '--commit', 'b']).code, 2);
   assert.equal(run(dir, ['--bogus']).code, 2);
   assert.equal(run(dir, ['--diff', 'missing.diff']).code, 2);
-  assert.equal(run(dir, ['--commit', 'nope']).code, 2);
+  assert.deepEqual(run(dir, ['--commit', 'nope']), {
+    code: 2,
+    stdout: '',
+    stderr: 'secret-finder: unknown commit: nope\n',
+  });
 
   const outside = mkdtempSync(join(tmpdir(), 'secret-finder-'));
   tmpDirs.push(outside);
-  assert.equal(run(outside, []).code, 2);
+  const notRepo = { code: 2, stdout: '', stderr: 'secret-finder: not a git repository\n' };
+  assert.deepEqual(run(outside, []), notRepo);
+  assert.deepEqual(run(outside, ['--commit', 'HEAD']), notRepo);
 });
 
 test('--commit values cannot inject git options', () => {
   const { dir } = makeRepo();
   const target = join(dir, 'pwned');
-  assert.equal(run(dir, [`--commit=--output=${target}`]).code, 2);
+  assert.deepEqual(run(dir, [`--commit=--output=${target}`]), {
+    code: 2,
+    stdout: '',
+    stderr: `secret-finder: unknown commit: --output=${target}\n`,
+  });
   assert.ok(!existsSync(target));
 });

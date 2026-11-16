@@ -55,13 +55,22 @@ function gitSucceeds(args: string[]): boolean {
   }
 }
 
+function requireRepo(): void {
+  if (!gitSucceeds(['rev-parse', '--git-dir'])) throw new Error('not a git repository');
+}
+
 function commitLines(commit: string): AddedLine[] {
+  requireRepo();
+  if (!gitSucceeds(['rev-parse', '--verify', '--quiet', '--end-of-options', `${commit}^{commit}`])) {
+    throw new Error(`unknown commit: ${commit}`);
+  }
   return parseDiff(
     git(['show', ...DIFF_FLAGS, '--format=', '--diff-merges=first-parent', '--end-of-options', commit]),
   );
 }
 
 function workingTreeLines(): AddedLine[] {
+  requireRepo();
   const base = gitSucceeds(['rev-parse', '--verify', '--quiet', 'HEAD'])
     ? 'HEAD'
     : git(['hash-object', '-t', 'tree', '/dev/null']).trim(); // no commits yet: diff against the empty tree
