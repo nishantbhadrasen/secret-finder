@@ -74,4 +74,4 @@ Built with Cursor (Claude Opus 5.5) in agent mode, reviewed independently in a f
 
 ## Time
 
-TIME: fill in
+Time: the core tool took about 45 minutes. About 30 minutes more went into hardening, an independent AI review and fixes, each visible as its own commit.
