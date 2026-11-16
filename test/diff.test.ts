@@ -84,6 +84,18 @@ test('ignores "No newline" markers and CRLF line endings', () => {
   ]);
 });
 
+test('strips ANSI color codes from colored diffs', () => {
+  const diff = lines(
+    '\x1b[1mdiff --git a/c.txt b/c.txt\x1b[m',
+    '\x1b[1m--- a/c.txt\x1b[m',
+    '\x1b[1m+++ b/c.txt\x1b[m',
+    '\x1b[36m@@ -1 +1,2 @@\x1b[m',
+    ' keep',
+    '\x1b[32m+\x1b[m\x1b[32mnew\x1b[m',
+  );
+  assert.deepEqual(parseDiff(diff), [{ file: 'c.txt', line: 2, text: 'new' }]);
+});
+
 test('decodes quoted paths and strips timestamps from non-git diffs', () => {
   const quoted = lines('+++ "b/caf\\303\\251 \\"x\\".txt"', '@@ -0,0 +1 @@', '+hi');
   assert.equal(parseDiff(quoted)[0].file, 'café "x".txt');

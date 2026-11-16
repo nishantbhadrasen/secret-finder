@@ -5,6 +5,7 @@ export interface AddedLine {
 }
 
 const HUNK_HEADER = /^@@ -\d+(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/;
+const ANSI_COLOR = /\x1b\[[0-9;]*m/g;
 
 /** Extract added lines, with their new-file line numbers, from a unified diff. */
 export function parseDiff(diff: string): AddedLine[] {
@@ -14,7 +15,7 @@ export function parseDiff(diff: string): AddedLine[] {
   let oldLeft = 0;
   let newLeft = 0;
 
-  for (const raw of diff.split('\n')) {
+  for (const raw of diff.replace(ANSI_COLOR, '').split('\n')) {
     const text = raw.endsWith('\r') ? raw.slice(0, -1) : raw;
 
     // Inside a hunk body the header counts decide what a line is, so an added
