@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
-import { fstatSync, lstatSync, readFileSync } from 'node:fs';
+import { lstatSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { parseDiff, type AddedLine } from './diff.ts';
@@ -10,10 +10,9 @@ const USAGE = `Usage: secret-finder [--diff <file> | --commit <hash>] [--json]
 
 Scans added lines of a git change for secrets.
 
-Input (first match wins):
-  --diff <file>     read a unified diff from a file
+Input:
+  --diff <file>     read a unified diff from a file ("-" for stdin)
   --commit <hash>   scan the changes introduced by a commit
-  piped stdin       read a unified diff from stdin
   (default)         working tree vs HEAD, plus untracked files
 
 Options:
@@ -87,16 +86,6 @@ function untrackedLines(): AddedLine[] {
   return lines;
 }
 
-/** True only for a real pipe or redirect; a hook's or CI runner's /dev/null or TTY doesn't count. */
-function stdinHasInput(): boolean {
-  try {
-    const stat = fstatSync(0);
-    return stat.isFIFO() || stat.isFile() || stat.isSocket();
-  } catch {
-    return false;
-  }
-}
-
 async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
@@ -132,9 +121,9 @@ async function main(argv: string[]): Promise<number> {
   }
 
   let lines: AddedLine[];
-  if (values.diff !== undefined) lines = parseDiff(readFileSync(values.diff, 'utf8'));
+  if (values.diff === '-') lines = parseDiff(await readStdin());
+  else if (values.diff !== undefined) lines = parseDiff(readFileSync(values.diff, 'utf8'));
   else if (values.commit !== undefined) lines = commitLines(values.commit);
-  else if (stdinHasInput()) lines = parseDiff(await readStdin());
   else lines = workingTreeLines();
 
   const findings = scan(lines);

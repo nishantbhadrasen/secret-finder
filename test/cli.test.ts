@@ -107,14 +107,20 @@ test('clean change exits 0 with no output', () => {
   assert.deepEqual(JSON.parse(run(dir, ['--commit', 'HEAD', '--json']).stdout), []);
 });
 
-test('reads a diff from stdin and from --diff', () => {
+test('reads a diff from --diff <file> and from stdin with --diff -', () => {
   const diff = `--- a/x\n+++ b/x\n@@ -0,0 +1 @@\n+${fake.jwt}\n`;
   const dir = mkdtempSync(join(tmpdir(), 'secret-finder-'));
   tmpDirs.push(dir);
   writeFileSync(join(dir, 'change.diff'), diff);
 
-  assert.match(run(dir, [], diff).stdout, /^x:1 {2}jwt/);
+  assert.match(run(dir, ['--diff', '-'], diff).stdout, /^x:1 {2}jwt/);
   assert.match(run(dir, ['--diff', 'change.diff']).stdout, /^x:1 {2}jwt/);
+});
+
+test('stdin is ignored without --diff -', () => {
+  const { dir } = makeRepo();
+  const diff = `--- a/x\n+++ b/x\n@@ -0,0 +1 @@\n+${fake.jwt}\n`;
+  assert.deepEqual(run(dir, [], diff), { code: 0, stdout: '', stderr: '' });
 });
 
 test('errors exit 2', () => {
